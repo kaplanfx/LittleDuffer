@@ -1,0 +1,16 @@
+A golf stroke counter (or count anything up to 99) for the pebble smartwatch.
+
+Current functionality:
+  Count from 0 to 99
+  Up button short press decrements count (if count is already at 0 it will remain at 0)
+  Center button short press resets count to 0
+  Down button short press increments count (if count is 99 it will reset to 0)
+
+Potential future functionality:
+  Track hole number
+  Add second window with complete scorecard (accessed by long press of center button)
+  Track hole score vs. par (develop preprocessor to allow course pars to be entered through web app)
+
+Special thanks to DouweM for letting me use the number pngs from his PebbleRevolution watchface: https://github.com/DouweM/PebbleRevolution
+
+Big thanks to all the #pebble folks on freenode for their help.
