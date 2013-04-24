@@ -1,0 +1,61 @@
+
+{"friendlyVersion": "0.1",
+ "versionDefName": "APP_RESOURCES",
+ "media": [
+     {
+      "type":     "png",
+      "defName":  "IMAGE_MENU_ICON",
+      "file":     "images/gball_icon.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_0",
+      "file":     "images/time_0.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_1",
+      "file":     "images/time_1.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_2",
+      "file":     "images/time_2.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_3",
+      "file":     "images/time_3.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_4",
+      "file":     "images/time_4.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_5",
+      "file":     "images/time_5.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_6",
+      "file":     "images/time_6.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_7",
+      "file":     "images/time_7.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_8",
+      "file":     "images/time_8.png"
+    },
+    {
+      "type":     "png",
+      "defName":  "IMAGE_TIME_9",
+      "file":     "images/time_9.png"
+    }
+  ]
+}
