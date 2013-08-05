@@ -56,6 +56,18 @@
       "type":     "png",
       "defName":  "IMAGE_TIME_9",
       "file":     "images/time_9.png"
+    },
+    {
+    "type":       "font",
+      "defName":  "FONT_DUEPUNTOZERO_BOLD_24",
+      "characterRegex": "[ :EHLOT]",
+      "file":     "fonts/duepuntozero_bold_24.ttf"
+    },
+    {
+    "type":       "font",
+      "defName":  "FONT_DUEPUNTOZERO_BOLD_38",
+      "characterRegex": "[0-9]",
+      "file":     "fonts/duepuntozero_bold_38.ttf"
     }
   ]
 }

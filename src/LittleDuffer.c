@@ -6,14 +6,42 @@
 #define MY_UUID { 0x12, 0x0A, 0x37, 0x63, 0x98, 0x57, 0x41, 0xDF, 0x80, 0xAF, 0x99, 0x13, 0x75, 0x21, 0x2C, 0xDB }
 PBL_APP_INFO(MY_UUID,
              "Little Duffer", "Kaplandia",
-             0, 2, /* App version */
+             0, 3, /* App version */
              RESOURCE_ID_IMAGE_MENU_ICON,
              APP_INFO_STANDARD_APP);
 
+#define HOLE_HEADER_FRAME (GRect(0,80,70,30))
+#define TOTAL_HEADER_FRAME (GRect(74,80,70,30))
+#define HOLE_COUNT_FRAME (GRect(0,142-32,70,48))
+#define TOTAL_COUNT_FRAME (GRect(74,142-32,70,48))
+
+//This is the main window
 Window window;
+
+//define my text layers
+TextLayer hole_header_layer; /* header for hole count */
+TextLayer hole_count_layer; /* tracks which hole you are on */
+TextLayer total_header_layer; /* header for total count */
+TextLayer total_count_layer; /* tracks your total score for the round */
+
+//custom font vars
+GFont duepuntozero_bold_24; /* my custom font */
+GFont duepuntozero_bold_38; /* large size */
 
 //this is the main var that hold the count
 int current_count = 0;
+//this var holds the current hole
+int current_hole = 0;
+//this var holds the total count
+int total_count = 0;
+
+//define char strings for my headers
+static char hole_header_text[] = "HOLE:";
+static char total_header_text[] = "TOT:";
+
+//define char buffs for hole and total count
+static char hole_text[3] = "000";
+static char total_text[4] = "0000";
 
 // All the image setup stuff is here
 // Image resources
@@ -69,15 +97,15 @@ void load_digit_image_into_slot(int slot_number, int digit_value) {
   // Logic to display the image at the correct location based on the slot_number
   if (slot_number == 0) {
     image_containers[slot_number].layer.layer.frame.origin.x = 37;
-    image_containers[slot_number].layer.layer.frame.origin.y = 33;
+    image_containers[slot_number].layer.layer.frame.origin.y = 9;
   }
   if (slot_number == 1) {
     image_containers[slot_number].layer.layer.frame.origin.x = 0;
-    image_containers[slot_number].layer.layer.frame.origin.y = 33;
+    image_containers[slot_number].layer.layer.frame.origin.y = 9;
   }
   if (slot_number == 2) {
     image_containers[slot_number].layer.layer.frame.origin.x = 74;
-    image_containers[slot_number].layer.layer.frame.origin.y = 33;
+    image_containers[slot_number].layer.layer.frame.origin.y = 9;
   }
   
   // Now add to the window layer
@@ -105,7 +133,7 @@ void unload_digit_image_from_slot(int slot_number) {
 
 //Code takes current_count and calls the appropriate load / unload image routines
 //most of the custom logic is here
-void update_count(int the_count) {
+void update_count() {
 
   int ones = 0, tens = 0;
 
@@ -115,23 +143,50 @@ void update_count(int the_count) {
     }
 
   // If the count is less than 10 load slot 0 with the_count
-  if(the_count < 10) {
+  if(current_count < 10) {
 
-    load_digit_image_into_slot(0, the_count);
+    load_digit_image_into_slot(0, current_count);
   }
 
   // If the count is 10 or greater, figure out the ones and tens and draw accordingly
-  if(the_count > 9) {
+  if(current_count > 9) {
 
     //a bit of math to get the ones and tens digits
-    ones = the_count % 10;
-    tens = the_count / 10;
+    ones = current_count % 10;
+    tens = current_count / 10;
     //load tens in slot 1
     load_digit_image_into_slot(1, tens);
     //load ones into slot 2
     load_digit_image_into_slot(2, ones);
   }
 
+}
+
+//draw the hole count on scree
+void update_hole_count() 
+{
+  //update the char buffer with the correct hole count
+  snprintf(hole_text, 3, "%d", current_hole);
+
+  //draw it onto our layer
+  text_layer_set_text(&hole_count_layer, hole_text);
+}
+
+void update_total_count()
+{
+  //update the char buffer with the current total
+  snprintf(total_text, 4, "%d", total_count);
+
+  //draw it onto our layer
+  text_layer_set_text(&total_count_layer, total_text);
+}
+
+//function that calls all the various display updates
+void update_display()
+{
+  update_count();
+  update_hole_count();
+  update_total_count();
 }
 
 //Button handler for single up button press - decrements current count and calls draw
@@ -146,7 +201,7 @@ void up_single_click_handler(ClickRecognizerRef recognizer, Window *window) {
     current_count -= 1;
   }
 
-  update_count(current_count);
+  update_display();
 
 }
 
@@ -162,18 +217,40 @@ void down_single_click_handler(ClickRecognizerRef recognizer, Window *window) {
     current_count += 1;
   }
 
-  update_count(current_count);
-
+  update_display();
 }
 
-//Button handler for single select button press - resets counter to zero
+/* Button handler for single select button press
+   adds current count to total
+   increments hole count
+   resets current count */
+
 void select_single_click_handler(ClickRecognizerRef recognizer, Window *window) {
   (void)recognizer;
   (void)window;
 
-  current_count = 0;
+  if (current_hole == 18) {
+    //add current count to total
+    total_count += current_count;
 
-  update_count(current_count);
+    //reset current count to 0
+    current_count = 0;
+
+    // don't increment hole
+    // need to do something more sophisticated here since people can still add strokes
+  } else {
+    //first add curent count to total count
+    total_count += current_count;
+
+    //increment the hole count
+    ++current_hole;
+
+    //reset the current count to 0
+    current_count = 0;
+  }
+
+  //redraw the display
+  update_display();
 
 }
 
@@ -202,17 +279,65 @@ void handle_init(AppContextRef ctx) {
   //set the background to black
   window_set_background_color(&window, GColorBlack);
 
+  //initialize resources in resource_map.json
+  resource_init_current_app(&APP_RESOURCES);
+
+  //load font resources now that resources are initiziled
+  duepuntozero_bold_24 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DUEPUNTOZERO_BOLD_24));
+  duepuntozero_bold_38 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DUEPUNTOZERO_BOLD_38));
+
+  //draw our hole header
+  text_layer_init(&hole_header_layer, HOLE_HEADER_FRAME);
+  text_layer_set_text_color(&hole_header_layer, GColorWhite);
+  text_layer_set_background_color(&hole_header_layer, GColorClear);
+  text_layer_set_font(&hole_header_layer, duepuntozero_bold_24);
+  text_layer_set_text_alignment(&hole_header_layer, GTextAlignmentCenter);
+  //layer_set_frame(&hole_header_layer.layer, HOLE_HEADER_FRAME);
+  layer_add_child(&window.layer, &hole_header_layer.layer);
+  text_layer_set_text(&hole_header_layer, hole_header_text);
+
+  //draw our total header
+  text_layer_init(&total_header_layer, TOTAL_HEADER_FRAME);
+  text_layer_set_text_color(&total_header_layer, GColorWhite);
+  text_layer_set_background_color(&total_header_layer, GColorClear);
+  text_layer_set_font(&total_header_layer, duepuntozero_bold_24);
+  text_layer_set_text_alignment(&total_header_layer, GTextAlignmentCenter);
+  //layer_set_frame(&total_header_layer.layer, TOTAL_HEADER_FRAME);
+  layer_add_child(&window.layer, &total_header_layer.layer);
+  text_layer_set_text(&total_header_layer, total_header_text);
+
+  //setup our hole text layer
+  text_layer_init(&hole_count_layer, HOLE_COUNT_FRAME);
+  text_layer_set_text_color(&hole_count_layer, GColorBlack);
+  text_layer_set_background_color(&hole_count_layer, GColorWhite);
+  text_layer_set_font(&hole_count_layer, duepuntozero_bold_38);
+  text_layer_set_text_alignment(&hole_count_layer, GTextAlignmentCenter);
+  layer_set_frame(&hole_count_layer.layer, GRect(0,142-36,70,48));
+  layer_add_child(&window.layer, &hole_count_layer.layer);
+  //don't add the text here
+
+  //setup our total text layer
+  text_layer_init(&total_count_layer, TOTAL_COUNT_FRAME);
+  text_layer_set_text_color(&total_count_layer, GColorBlack);
+  text_layer_set_background_color(&total_count_layer, GColorWhite);
+  text_layer_set_font(&total_count_layer, duepuntozero_bold_38);
+  text_layer_set_text_alignment(&total_count_layer, GTextAlignmentCenter);
+  layer_set_frame(&total_count_layer.layer, GRect(74,142-36,70,48));
+  layer_add_child(&window.layer, &total_count_layer.layer);
+
   //button handler init
   window_set_click_config_provider(&window, (ClickConfigProvider) click_config_provider);
 
   //make sure the count is set to 0
   current_count = 0;
+  //make sure the hole starts at 1
+  current_hole = 1;
+  //make sure the total is 0
+  total_count = 0;
 
-  //initialize resources in resource_map.json
-  resource_init_current_app(&APP_RESOURCES);
 
-  //Draw the initial digit to the screen
-  load_digit_image_into_slot(0, current_count);
+  //update the display
+  update_display();
 }
 
 //Called on deinit free any resources now
